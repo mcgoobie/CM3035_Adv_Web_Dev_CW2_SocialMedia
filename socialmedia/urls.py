@@ -46,7 +46,7 @@ urlpatterns = [
     path('login/', login_view, name="login"),
     path('logout/', logout_view, name="logout"),
 
-    path('chat/', include('chat.urls', namespace='chat')),
+    # path('chat/', include('chat.urls', namespace='chat')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,
