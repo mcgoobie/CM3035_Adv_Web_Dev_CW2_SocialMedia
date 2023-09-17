@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<style type="text/css">
+  .field-heading {
+    color: #737373;
+  }
+
+  .profile-card {
+    max-width: 800px;
+    padding: 15px;
+    margin: auto;
+  }
+
+  .icon-container {
+    width: 100px;
+    margin: 0 auto;
+  }
+
+  .image-container {
+    max-width: 250px;
+    height: auto;
+    position: relative;
+    margin: 0 auto;
+  }
+
+  #id_confirm {
+    color: green;
+  }
+
+  #id_confirm:hover {
+    opacity: 0.3;
+  }
+
+  #id_cancel:hover {
+    opacity: 0.3;
+  }
+
+  #id_cancel {
+    color: red;
+  }
+
+  .material-icons {
+    font-size: 30px;
+  }
+
+  .material-icons:hover {
+    cursor: pointer;
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="card profile-card">
+      <div class="card-body">
+        <div class="d-flex flex-column justify-content-center p-4">
+          <div class="mb-2 icon-container" id="id_image_crop_confirm">
+            <span id="id_cancel" class="material-icons">cancel</span>
+            <span id="id_confirm" class="material-icons">check</span>
+          </div>
+          <div class="image-container" id="id_image_container">
+            <img class="border border-dark rounded-circle img-fluid mx-auto profile-image"
+              id="id_profile_picture_display" src="{{edit_form.initial.profile_picture.url}}" alt="Profile Img">
+            <div class="middle" id="id_middle_container">
+              <div class="text" id="id_text">Change Picture</div>
+            </div>
+          </div>
+          <form class="form-signin" method="post">{% csrf_token %}
+            <input class="d-none" type="file" id="id_profile_picture" name="profile_picture" onchange="readURL(this)">
+            <h6 class="mt-4 field-heading">Email: </h6>
+            <input type="email" name="email" id="id_input_email" class="form-control" placeholder="Email address"
+              required autofocus value={{edit_form.initial.email}}>
+            <h6 class="mt-4 field-heading">Username: </h6>
+            <input type="text" name="username" id="id_input_username" class="form-control" placeholder="Username"
+              required value="{{edit_form.initial.username}}">
+            <h6 class="mt-4 field-heading">First Name: </h6>
+            <input type="text" name="f_name" id="id_input_fname" class="form-control" placeholder="First Name" required
+              value="{{edit_form.initial.f_name}}">
+            <h6 class="mt-4 field-heading">Last Name: </h6>
+            <input type="text" name="l_name" id="id_input_lanme" class="form-control" placeholder="Last Name" required
+              value="{{edit_form.initial.l_name}}">
+            <div class="gender-div">
+              <p class="gender-header">Gender</p>
+              <input type="radio" name="gender" id="id_input_GenderM" value="M">
+              <label for="inputGenderM">Male</label>
+              <input type="radio" name="gender" id="id_input_GenderF" value="F">
+              <label for="inputGenderF">Female</label>
+            </div>
+
+            {% for field in edit_form %}
+            <p>
+              {% for error in field.errors %}
+            <p style="color: red">{{ error }}</p>
+            {% endfor %}
+            </p>
+            {% endfor %}
+            {% if edit_form.non_field_errors %}
+            <div style="color: red">
+              <p>{{edit_form.non_field_errors}}</p>
+            </div>
+
+            {% endif %}
+
+            <div class="d-flex flex-column mt-4">
+              <button class="mt-4 btn btn-primary flex-grow-1" type="submit">Save</button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+
+  var cropper;
+  var imageFile;
+  var base64ImgString;
+  var cropX;
+  var cropY;
+  var cropWidth;
+  var cropHeight;
+
+  enableImgOverlay();
+
+  function readURL(input) {
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+
+      reader.onload = function (e) {
+        disableImgOverlay();
+        var img = e.target.result;
+        var imgField = document.getElementById("id_profile_picture_display");
+        imgField.src = img;
+        cropper = new Cropper(imgField, {
+          aspectRatio: 1 / 1,
+          crop(event) {
+            setImageCropProperties(
+              img,
+              event.detail.x,
+              event.detail.y,
+              event.detail.width,
+              event.detail.height
+            )
+          }
+        })
+      }
+
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+  
+  function setImageCropProperties(image, x, y, width, height) {
+    imageFile = image;
+    cropX = x;
+    cropY = y;
+    cropWidth = width;
+    cropHeight = height;
+  }
+
+  // Check image size of cropped image is less than 10mb
+  function isImageSizeValid(image) {
+    var startIndex = image.indexOf("base64,") + 7;
+    var base64str = image.substr(startIndex);
+    var decoded = atob(base64str);
+
+    // if larger than allowed size, return null
+    if (decoded.length >= "{{DATA_UPLOAD_MAX_MEMORY_SIZE}}") {
+      return null;
+    }
+    return base64str;
+  }
+
+  function cropImage(image, x, y, width, height) {
+    base64ImgStr = isImageSizeValid(image);
+
+    if (base64ImgStr != null) {
+      var requestData = {
+        "csrfmiddlewaretoken": "{{csrf_token}}",
+        "image": base64ImgStr,
+        "cropX": cropX,
+        "cropY": cropY,
+        "cropWidth": cropWidth,
+        "cropHeight": cropHeight,
+      }
+      displayLoadingSpinner(true);
+      $.ajax({
+        type: 'POST',
+        dataType: 'json',
+        url: "{% url 'account:crop_image' user_id=edit_form.initial.id %}",
+        data: requestData,
+        timeout: 10000,
+        success: function (data) {
+          if (data.result == "success") {
+            document.getElementById('id_cancel').click()
+          }
+          else if (data.result == "error") {
+            alert(data.exception)
+            document.getElementById('id_cancel').click()
+          }
+        },
+        error: function (data) {
+          console.error("Error: ", data);
+        },
+        complete: function (data) {
+          displayLoadingSpinner(false);
+        }
+      })
+    } else {
+      alert('Image size is too big, upload image smaller than 10MB.');
+      document.getElementById('id_cancel').click();
+    }
+  }
+
+  // Enable see through overlay when selecting text
+  function enableImgOverlay() {
+    var text = document.getElementById("id_text")
+
+    text.style.backgroundColor = "#0066ff";
+    text.style.color = "white"
+    text.style.fontSize = "16px"
+    text.style.padding = "16px 32px"
+    text.style.cursor = "pointer"
+
+    var profilePic = document.getElementById("id_profile_picture")
+
+    profilePic.style.opacity = "1"
+    profilePic.style.display = "block"
+    profilePic.style.width = "100%"
+    profilePic.style.height = "auto"
+    profilePic.style.transition = ".5s ease"
+    profilePic.style.backfaceVisibility = "hidden"
+    profilePic.style.cursor = "pointer"
+
+    var midContainer = document.getElementById("id_middle_container")
+
+    midContainer.style.opacity = "0"
+    midContainer.style.transition = ".5s ease"
+    midContainer.style.position = "absolute"
+    midContainer.style.top = "50%"
+    midContainer.style.left = "50%"
+    midContainer.style.transform = "translate(-50%, -50%)"
+
+    var imageContainer = document.getElementById("id_image_container")
+    imageContainer.addEventListener("mouseover", function (event) {
+      profilePic.style.opacity = "0.3"
+      midContainer.style.opacity = "1"
+    })
+
+    imageContainer.addEventListener("mouseout", function (event) {
+      profilePic.style.opacity = "1"
+      midContainer.style.opacity = "0"
+    })
+
+    imageContainer.addEventListener("click", function (event) {
+      document.getElementById('id_profile_picture').click();
+    });
+
+    // Position confirm and cancel buttons correctly to show only when img has been selected and cropped.
+    var cropConfirm = document.getElementById("id_image_crop_confirm")
+    cropConfirm.classList.remove("d-flex")
+    cropConfirm.classList.remove("flex-row")
+    cropConfirm.classList.remove("justify-content-between")
+    cropConfirm.classList.add("d-none")
+  }
+
+  // get ready to crop img
+  function disableImgOverlay() {
+    var text = document.getElementById("id_text")
+    var profilePic = document.getElementById("id_profile_picture_display")
+    var midContainer = document.getElementById("id_middle_container")
+    var imageContainer = document.getElementById("id_image_container")
+
+    imageContainer.removeEventListener("mouseover", function (event) {
+      profilePic.style.opacity = "0.3"
+      midContainer.style.opacity = "1"
+    })
+
+    imageContainer.removeEventListener("mouseout", function (event) {
+      profilePic.style.opacity = "1"
+      midContainer.style.opacity = "0"
+    })
+
+    profilePic.style.opacity = "1"
+    midContainer.style.opacity = "0"
+    text.style.cursor = "default"
+    text.style.opacity = "0"
+
+    document.getElementById('id_image_container').removeEventListener("click", function (event) {
+      event.preventDefault();
+      // do nothing
+    });
+    document.getElementById('id_profile_picture').addEventListener("click", function (event) {
+      event.preventDefault();
+      // do nothing
+    });
+
+    var cropConfirm = document.getElementById("id_image_crop_confirm")
+    cropConfirm.classList.remove("d-none")
+    cropConfirm.classList.add("d-flex")
+    cropConfirm.classList.add("flex-row")
+    cropConfirm.classList.add("justify-content-between")
+
+    var confirm = document.getElementById("id_confirm")
+    confirm.addEventListener("click", function (event) {
+      cropImage(imageFile, cropX, cropY, cropWidth, cropHeight);
+    })
+
+    var cancel = document.getElementById("id_cancel")
+    cancel.addEventListener("click", function (event) {
+      console.log("Reloading window...")
+      window.location.reload();
+    })
+  }
+</script>
+
+
+{% endblock content %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+  .home-body {
+    width: 100%;
+  }
+
+  .home-para {
+    font-size: large;
+    color: rgb(146, 146, 146);
+    font-style: italic;
+  }
+
+  .home-reg-link {
+    background-color: green;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+  }
+
+  .post {
+    width: 500px;
+    margin: 0 auto;
+  }
+
+  .post-author {
+    margin: 0;
+    font-weight: bold;
+  }
+
+  .post-date {
+    margin: 0;
+    color: #787878;
+    font-size: small;
+  }
+
+  hr {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .chat {
+    position: absolute;
+    right: 10px;
+  }
+
+  .chat-link {
+    text-decoration: none;
+  }
+</style>
+<div class="container card card-body home-body">
+  {% if request.user.is_authenticated and no_friends > 0 %}
+  {% for friend_post in all_friends_posts  %}
+  {% for post in friend_post %}
+  <div class="card-body card mb-4 post">
+    <p class="post-author">{{post.user_account}}</p>
+    <p class="post-date">{{post.post_date}}</p>
+    <hr class="post-hr">
+    {% if post.image != '' %}
+    <img src="{{post.image.url}}" alt="post-image" />
+    <hr class="post-hr">
+    {% endif %}
+    <p class="post-content">{{post.content}}</p>
+  </div>
+  {% endfor %}
+  {% endfor %}
+  <div class="card-body card chat mb-4">
+    <h5 class="chat-title">Chat Rooms available</h5>
+    <hr>
+    <a class="chat-link" href="{% url 'chat:chat' %}">General Channel</a>
+  </div>
+  {% else %}
+  <h1>ProFile.</h1>
+  <div class="d-flex flex-row justify-content-center">
+    <img src="static/home_banner/profile_home.png" width="60%" />
+    <div>
+      <h4 class="mb-2">A place for like-minded individuals to chat and share moments in their life.</h4>
+      {% if request.user.is_authenticated == False %}
+      <p class="home-para mb-3">Create a account to start socializing now!</p>
+      <a class="home-reg-link" href="{% url 'register' %}">Register</a>
+      {%  endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock content %}

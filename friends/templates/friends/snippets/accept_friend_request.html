@@ -1,0 +1,24 @@
+<script type="text/javascript">
+  function acceptFriendRequest(friend_request_id, uiUpdatefunction) {
+    // Django has issues parsing the friend request id directly from the string, so we are replacing it through a placeholder.
+    var url = "{% url 'friends:friend_request_accept' friend_request_id=123456789 %}".replace("123456789", friend_request_id)
+    $.ajax({
+      type: "GET",
+      datatype: "json",
+      url: url,
+      timeout: 5000,
+      success: function (data) {
+        if (data.response == "You have accepted the friend request. ") {
+        } else if (data.response != null) {
+          alert(data.response);
+        }
+      },
+      error: function (data) {
+        alert("Something went wrong: ", data);
+      },
+      complete: function (data) {
+        uiUpdatefunction();
+      },
+    });
+  }
+</script>

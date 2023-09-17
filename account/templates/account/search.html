@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<style type="text/css">
+  .profile-image {
+    max-height: 100px;
+    max-width: 100px;
+  }
+
+  .profile-image {
+    border-radius: 12px;
+  }
+
+  .card {
+    border-radius: 12px;
+    /* border: 1px solid red; */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .user-container {
+    width: 100%;
+    margin-bottom: 1em;
+  }
+
+  .user-text {
+    color: white;
+    font-weight: 500;
+  }
+
+  .personal-text {
+    color: rgb(138, 138, 138);
+    font-weight: 500;
+  }
+
+  .user-text-container {
+    background-color: #a30000;
+    border-radius: 12px;
+  }
+
+  .friends-container {
+    background-color: #227a00;
+  }
+
+
+  .friends-btn:hover {
+    background-color: #bfbfbf;
+    border-color: #bfbfbf;
+  }
+
+  .dropdown-toggle::after {
+    content: none;
+  }
+
+  .profile-link {
+    color: #000;
+  }
+</style>
+
+<div class="container">
+  <div class="card p-2">
+
+    {% if accounts %}
+    <div class="d-flex flex-row flex-wrap this">
+      {% for account in accounts %}
+      <div class="user-container card flex-grow-1 align-items-center">
+        <!-- Profile pictue/link to profile -->
+        <a class="profile-link" href="{% url 'account:profile' user_id=account.0.id %}">
+          <div class="card-image m-2">
+            <img class="img-fluid profile-image" src="{{account.0.profile_picture.url}}" alt="">
+          </div>
+        </a>
+        <!-- Profile name/link to profile -->
+        <a class="profile-link" href="{% url 'account:profile' user_id=account.0.id %}">
+          <div class="card-center px-2">
+            <h4 class="card-title">{{account.0.username}}</h4>
+          </div>
+        </a>
+        <div class="d-flex flex-row card-right flex-grow-1 justify-content-end mx-2">
+          <!-- If user is friends -->
+          {% if account.1 %}
+          <div class="d-flex flex-row user-text-container p-3 friends-container">
+            <p class="user-text m-auto">
+              Friends
+            </p>
+          </div>
+          {% else %}
+          <!-- If user is not friends -->
+          {% if account.0 != request.user %}
+          <div class="d-flex flex-row user-text-container p-3">
+            <p class="user-text m-auto">
+             Not Friends
+            </p>
+          </div>
+          {% endif %}
+          {% endif %}
+          <!-- Logged in User -->
+          {% if account.0 == request.user %}
+          <div class="d-flex flex-row p-3">
+            <p class="personal-text m-auto">
+              You
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% if forloop.counter|divisibleby:10 %}
+    </div>
+    <div class="d-flex flex-row flex-wrap">
+      {% endif %}
+
+      {% endfor %}
+
+      {% else %} <!-- If no friends -->
+      <div class="d-flex flex-row flex-grow-1 justify-content-center align-items-center p-4">
+        <p>No results</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock content %}

@@ -1,0 +1,101 @@
+{% load static %}
+<style>
+	.nav-bar {
+		background-color: #018fd7;
+		color: white;
+	}
+
+	.nav-tag,
+	.reg-btn {
+		text-decoration: none;
+		color: white;
+	}
+
+	.reg-btn {
+		border-radius: 10px;
+		border: 2px solid white;
+		padding: 10px;
+	}
+
+	.account-options {
+		position: absolute;
+		top: 45px;
+		left: -20px;
+		border-radius: 10px;
+		color: black;
+		background-color: white;
+		z-index: 1;
+    box-shadow: 2px 2px 5px 1px grey;
+	}
+
+	.account-options>a {
+		padding: 10px;
+		margin-bottom: 10px;
+	}
+
+	.dropdown-1st {
+		margin-top: 10px;
+	}
+
+	.account-options>a:hover {
+		background-color: rgb(227, 227, 227);
+	}
+</style>
+<!-- Header -->
+<div class="nav-bar d-flex flex-column flex-lg-row p-3 px-md-4 mb-3 border-bottom shadow-sm">
+
+	<div class="d-none d-md-flex flex-row my-auto flex-grow-1 align-items-center">
+		{% if request.user.is_authenticated %}
+		<h5 class="mr-3 font-weight-normal justify-content-start">
+			<a class="nav-tag p-2" href="{% url 'home' %}">Home</a>
+		</h5>
+		<form class="search-bar justify-content-start" onsubmit="return runSearch();">
+			<input type="text" class="form-control" name="q" id="id_q_large" placeholder="Search for user..">
+		</form>
+		{% else %}
+		<h5 class="mr-3 font-weight-normal justify-content-start">
+			<a class="nav-tag p-2" href="{% url 'home' %}">ProFile.</a>
+		</h5>
+		{% endif %}
+
+		<div class="d-flex flex-row-reverse flex-grow-1">
+			<nav class="">
+				{% if request.user.is_authenticated %}
+				<div class="dropdown dropleft show p-2">
+					<div class="d-flex flex-row">
+
+						<div class="btn-group dropleft">
+							{% if request.user.profile_picture.url == '/media/static_icons/blank-pfp.png' %}
+							<img class="account-image rounded-circle m-auto d-block dropdown-toggle" id="id_profile_links"
+								data-bs-toggle="collapse" href="#collapse-options" aria-haspopup="true" aria-expanded="false"
+								src="/static/static_icons/blank-pfp.png" alt="default profile picture" width="40" height="40">
+							{% else %}
+							<img class="account-image rounded-circle m-auto d-block dropdown-toggle" id="id_profile_links"
+								data-bs-toggle="collapse" href="#collapse-options" aria-haspopup="true" aria-expanded="false"
+								src="{{request.user.profile_picture.url}}" alt="default profile picture" width="40" height="40">
+							{% endif %}
+							<div class="collapse account-options" id="collapse-options" aria-labelledby="id_profile_links">
+								<a class="dropdown-item dropdown-1st"
+									href="{% url 'account:profile' user_id=request.user.id %}">Account</a>
+								<a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				{% else %}
+				<a class="nav-tag" href="{% url 'login' %}">Login</a>
+				<a class="reg-btn" href="{% url 'register' %}">Register</a>
+				{% endif %}
+			</nav>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	function runSearch() {
+		query = document.getElementById('id_q_large').value;
+		window.location.replace("{% url 'search' %}?q=" + query)
+		return false
+	}
+</script>
