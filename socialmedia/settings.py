@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "friends",
     "chat",
     # 3rd-party
-    "daphne",  # for development
+    # "daphne",  # for development
     "django_extensions",
     "django.contrib.admin",
     "django.contrib.auth",
